@@ -56,3 +56,27 @@ command.
  * `cdk docs`        open CDK documentation
 
 Enjoy!
+
+
+## New Addition: Deployment Instructions (added on [October 16, 2024])
+This section provides a quick overview of deployment steps.
+
+Activate your virtual environment if it's not already active
+'''
+$ source .venv/bin/activate
+'''
+
+If this is your first deployment, boostrap your AWS enviroment
+'''
+$ cdk bootstrap
+'''
+
+Deploy your stack to AWS
+'''
+cdk deploy
+'''
+
+To clean and delete the stack along with all associated resource
+'''
+$ cdk destroy
+'''
