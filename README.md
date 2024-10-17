@@ -58,7 +58,7 @@ command.
 Enjoy!
 
 
-## New Addition: Deployment Instructions (added on [October 16, 2024])
+## New Addition: Deployment Instructions (added on October 16, 2024)
 This section provides a quick overview of deployment steps.
 
 Activate your virtual environment if it's not already active
