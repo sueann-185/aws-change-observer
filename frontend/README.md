@@ -1,27 +1,24 @@
-# Frontend Testing
+# React + Vite Frontend
 
-## Purpose
+This project uses React with Vite for fast development and building. Here's what you need to know:
 
-This folder (`frontend/`) is intended solely for testing the functionality of the backend services. It contains front-end code and configurations that interact with the backend to simulate and verify backend behavior.
+## Tech Stack
 
-### Key Points:
-- The frontend code here is **not** intended for production use.
-- It is used to test backend services, including API Gateway and Lambda functions.
-- The primary purpose is to verify API responses and ensure backend services are functioning as expected.
+- **React**: Frontend library
+- **Vite**: Build tool and dev server
+- **Tailwind CSS**: Utility-first CSS framework
+- **Shadcn UI**: Component library based on Radix UI
+- **ESLint**: Code linting
 
-### How to Use
+## Running Locally
 
-1. **Run Frontend with Live Server**:
-   - This frontend can be tested using the **Live Server** extension in **Visual Studio Code**.
-   - To start, open the `frontend/` folder in **VS Code**, right-click on `index.html`, and select **Open with Live Server**.
-   - This will launch the frontend locally in your browser.
+1. Install dependencies: `npm install` in your terminal
+2. Start development server: `npm run dev` in your terminal
 
-2. **Configure Backend URLs**: 
-   - Ensure that the correct backend API URLs (e.g., API Gateway URLs) are used when testing backend functionality.
+The app will be available at `http://localhost:5173` by default.
 
-3. **Make Test Calls**: 
-   - Use the UI or JavaScript `fetch()` in the frontend to make API calls and observe responses from the backend.
+## Environment Variables
 
-### Notes
-- This folder is excluded from production deployments.
-- The testing setup may evolve as the backend services are updated or extended.
+The source of truth for environment variables is Vercel
+
+To pull the latest environment variables from Vercel, run `vercel env pull .env.local` in your terminal.
