@@ -1,8 +1,24 @@
-# React + Vite
+# React + Vite Frontend
 
-This template provides a minimal setup to get React working in Vite with HMR and some ESLint rules.
+This project uses React with Vite for fast development and building. Here's what you need to know:
 
-Currently, two official plugins are available:
+## Tech Stack
 
-- [@vitejs/plugin-react](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react/README.md) uses [Babel](https://babeljs.io/) for Fast Refresh
-- [@vitejs/plugin-react-swc](https://github.com/vitejs/vite-plugin-react-swc) uses [SWC](https://swc.rs/) for Fast Refresh
+- **React**: Frontend library
+- **Vite**: Build tool and dev server
+- **Tailwind CSS**: Utility-first CSS framework
+- **Shadcn UI**: Component library based on Radix UI
+- **ESLint**: Code linting
+
+## Running Locally
+
+1. Install dependencies: `npm install` in your terminal
+2. Start development server: `npm run dev` in your terminal
+
+The app will be available at `http://localhost:5173` by default.
+
+## Environment Variables
+
+The source of truth for environment variables is Vercel
+
+To pull the latest environment variables from Vercel, run `vercel env pull .env.local` in your terminal.
