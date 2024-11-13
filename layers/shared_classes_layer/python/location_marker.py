@@ -65,7 +65,7 @@ class LocationMarker:
     def get_detected_objects(self) -> List[DetectedObjects]:
         return self._detected_objects
 
-    def get_date_createD(self) -> datetime:
+    def get_date_created(self) -> datetime:
         return self._date_created
     
     def set_date_created(self,date_created:datetime):
