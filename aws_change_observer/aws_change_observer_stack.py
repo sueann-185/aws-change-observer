@@ -4,17 +4,22 @@ from aws_cdk import (
     aws_lambda,
     aws_apigateway as apigateway,
     aws_dynamodb as dynamodb,
-    aws_iam as iam
+    aws_iam as iam,
+    aws_certificatemanager as acm,
+    aws_route53 as route53,
+    aws_route53_targets as targets
 )
 from constructs import Construct
 
 
 class AwsChangeObserverStack(Stack):
 
-    def __init__(self, scope: Construct, construct_id: str, **kwargs) -> None:
+    def __init__(self, scope: Construct, construct_id: str, is_prod: bool = False, **kwargs) -> None:
         super().__init__(scope, construct_id, **kwargs)
 
         # Constants
+        DOMAIN_NAME = 'change-observer.com'
+        SUBDOMAIN = 'api'
         TABLE_NAME = 'LocationMarkers'        
         GET_MARKERS_REQUEST_LAMBDA_CODE_PATH = 'lambdas/get_markers_request'
         ADD_MARKER_REQUEST_LAMBDA_CODE_PATH = 'lambdas/add_marker_request'
@@ -109,3 +114,37 @@ class AwsChangeObserverStack(Stack):
              allow_origins=apigateway.Cors.ALL_ORIGINS,
              allow_methods=["GET", "POST", "OPTIONS"],
         )
+
+        if is_prod:
+            # Route 53 Hosted Zone
+            hosted_zone = route53.HostedZone.from_lookup(self, "ChangeObserverHostedZone", domain_name=DOMAIN_NAME)
+
+            # SSL Certificate in ACM
+            certificate = acm.Certificate(
+                self, "ChangeObserverAPICertificate",
+                domain_name=f"{SUBDOMAIN}.{DOMAIN_NAME}",
+                validation=acm.CertificateValidation.from_dns(hosted_zone)
+            )
+
+            # Custom Domain for API Gateway
+            custom_domain = apigateway.DomainName(
+                self, "ChangeObserverAPICustomDomain",
+                domain_name=f"{SUBDOMAIN}.{DOMAIN_NAME}",
+                certificate=certificate
+            )
+
+            # Map Custom Domain to API Gateway Stage
+            apigateway.BasePathMapping(
+                self, "BasePathMapping",
+                domain_name=custom_domain,
+                rest_api=api
+            )
+
+            # Route 53 Alias Record to Custom Domain
+            route53.ARecord(
+                self, "ChangeObserverAPIAliasRecord",
+                zone=hosted_zone,
+                record_name=SUBDOMAIN,
+                target=route53.RecordTarget.from_alias(targets.ApiGatewayDomain(custom_domain))
+            )
+
