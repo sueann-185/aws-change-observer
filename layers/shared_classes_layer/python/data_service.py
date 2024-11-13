@@ -105,3 +105,29 @@ class DataService:
         except Exception as e:
             logger.error(f"Error updating marker with markerId {marker.get_marker_id()}: {e}")
             raise Exception("Failed to update marker in DynamoDB") from e
+
+    def get_marker(self, marker_id: str) -> LocationMarker:
+        """
+        Retrieve a specific marker from DynamoDB by marker_id.
+        
+        :param marker_id: Unique identifier for the marker.
+        :return: The corresponding LocationMarker instance, or raises an exception if not found.
+        :raises Exception: Raises an exception if there is an issue retrieving the marker.
+        """
+        try:
+            #get the marker data from
+            marker_data = self.table.get_item(
+                Key={'markerId': str(marker_id)}
+            ).get('Item')
+
+            #check if marker exists
+            if not marker_data:
+                raise ValueError(f"Marker with ID {marker_id} does not exist")
+
+            #return marker object
+            marker = LocationMarker.from_json(marker_data)
+            return marker
+
+        except Exception as e:
+            logger.error(f"Error retrieving marker with markerId {marker_id}: {e}")
+            raise Exception("Failed to retrieve marker from DynamoDB") from e
