@@ -25,6 +25,11 @@ def lambda_handler(event, context):
         logger.error("TABLE_NAME environment variable is not set.")
         return {
             'statusCode': 500,
+            'headers': {
+                'Access-Control-Allow-Origin': '*',  # Allow all origins for testing
+                'Access-Control-Allow-Methods': 'GET,OPTIONS',  # Allowed methods
+                'Access-Control-Allow-Headers': 'Content-Type',  # Allowed headers
+            },
             'body': json.dumps({'error': 'Server configuration error.'})
         }
 
@@ -35,12 +40,22 @@ def lambda_handler(event, context):
         logger.error(f"Invalid or missing body in the request: {e}")
         return {
             'statusCode': 400,
+            'headers': {
+                'Access-Control-Allow-Origin': '*',  # Allow all origins for testing
+                'Access-Control-Allow-Methods': 'GET,OPTIONS',  # Allowed methods
+                'Access-Control-Allow-Headers': 'Content-Type',  # Allowed headers
+            },
             'body': json.dumps({'error': 'Invalid request body.'})
         }
     except Exception as e:
         logger.error(f"Error creating LocationMarker from JSON: {e}")
         return {
             'statusCode': 400,
+            'headers': {
+                'Access-Control-Allow-Origin': '*',  # Allow all origins for testing
+                'Access-Control-Allow-Methods': 'GET,OPTIONS',  # Allowed methods
+                'Access-Control-Allow-Headers': 'Content-Type',  # Allowed headers
+            },
             'body': json.dumps({'error': 'Invalid marker data format.'})
         }
 
@@ -51,11 +66,21 @@ def lambda_handler(event, context):
         logger.info(f"Successfully added marker with ID: {saved_marker.get_marker_id()}")
         return {
             'statusCode': 201,
+            'headers': {
+                'Access-Control-Allow-Origin': '*',  # Allow all origins for testing
+                'Access-Control-Allow-Methods': 'GET,OPTIONS',  # Allowed methods
+                'Access-Control-Allow-Headers': 'Content-Type',  # Allowed headers
+            },
             'body': json.dumps({'message': 'Marker added successfully', 'marker': saved_marker.to_json()})
         }
     except Exception as e:
         logger.error(f"Failed to add marker to DynamoDB: {e}")
         return {
             'statusCode': 500,
+            'headers': {
+                'Access-Control-Allow-Origin': '*',  # Allow all origins for testing
+                'Access-Control-Allow-Methods': 'GET,OPTIONS',  # Allowed methods
+                'Access-Control-Allow-Headers': 'Content-Type',  # Allowed headers
+            },
             'body': json.dumps({'error': 'Failed to add marker to DynamoDB.'})
         }

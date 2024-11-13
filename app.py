@@ -5,6 +5,14 @@ import aws_cdk as cdk
 
 from aws_change_observer.aws_change_observer_stack import AwsChangeObserverStack
 
+from dotenv import load_dotenv
+
+load_dotenv()
+
+region = os.getenv("REGION")
+account = os.getenv("ACCOUNT")
+is_prod = os.getenv("PROD") == 'True'  # Convert string to boolean if needed
+
 
 app = cdk.App()
 AwsChangeObserverStack(app, "AwsChangeObserverStack",
@@ -20,7 +28,9 @@ AwsChangeObserverStack(app, "AwsChangeObserverStack",
     # Uncomment the next line if you know exactly what Account and Region you
     # want to deploy the stack to. */
 
-    #env=cdk.Environment(account='123456789012', region='us-east-1'),
+    env=cdk.Environment(account=account, region=region),
+
+    is_prod=is_prod,
 
     # For more information, see https://docs.aws.amazon.com/cdk/latest/guide/environments.html
     )
