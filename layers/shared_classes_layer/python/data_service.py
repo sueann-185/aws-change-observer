@@ -69,11 +69,11 @@ class DataService:
         except Exception as e:
             logger.error(f"Error deleting marker with markerId {markerId}: {e}")
             return None
-
-    def update_marker(self, marker: LocationMarker) -> LocationMarker:
+        
+    def update_marker(self, marker: LocationMarker):
         """
         Update an existing marker in DynamoDB
-        :param marker: A LocationMarker with updated location details. Replaces marker with identical ID
+        :param marker: A LocationMarker with updated information. Replaces marker with identical ID
         :return: The updated LocationMarker.
         :raises Exception: Raises an exception if there is an issue updating the marker.
         """
@@ -90,22 +90,16 @@ class DataService:
             if not original_marker_data:
                 raise ValueError(f"Marker with ID {marker_id} does not exist")
 
-            #copy the original marker created date
-            original_date_created = original_marker_data['dateCreated']
-            marker.set_date_created(datetime.fromisoformat(original_date_created))
-
             #remove old entry
             self.delete_marker(marker_id)
 
             #replace with updated entry
             self.table.put_item(Item=marker.to_json())
-
-            return marker
         
         except Exception as e:
             logger.error(f"Error updating marker with markerId {marker.get_marker_id()}: {e}")
             raise Exception("Failed to update marker in DynamoDB") from e
-
+        
     def get_marker(self, marker_id: str) -> LocationMarker:
         """
         Retrieve a specific marker from DynamoDB by marker_id.
