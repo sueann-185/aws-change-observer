@@ -1,10 +1,7 @@
 import boto3
-import logging
 from typing import List
 from location_marker import LocationMarker
 import uuid
-
-logger = logging.getLogger(__name__)
 
 class DataService:
     """A service class for interacting with the DynamoDB LocationMarkers table."""
@@ -34,7 +31,7 @@ class DataService:
         except Exception as e:
             raise Exception("Failed to retrieve markers from DynamoDB") from e
 
-    def add_marker(self, marker: LocationMarker) -> LocationMarker:
+    def add_marker(self, marker: LocationMarker) -> str:
         """
         Adds a new marker to the DynamoDB table.
 
@@ -47,7 +44,7 @@ class DataService:
            
             self.table.put_item(Item=marker.to_json())
 
-            return marker
+            return unique_id
         except Exception as e:
             raise Exception("Failed to add marker to DynamoDB") from e        
 
@@ -64,10 +61,8 @@ class DataService:
                     'markerId': str(markerId)  #dynamoDB schema requires string here
                 }
             )
-            logger.info(f"Marker with markerId {markerId} deleted.")
             return response
         except Exception as e:
-            logger.error(f"Error deleting marker with markerId {markerId}: {e}")
             return None
         
     def update_marker(self, marker: LocationMarker):
@@ -97,7 +92,6 @@ class DataService:
             self.table.put_item(Item=marker.to_json())
         
         except Exception as e:
-            logger.error(f"Error updating marker with markerId {marker.get_marker_id()}: {e}")
             raise Exception("Failed to update marker in DynamoDB") from e
         
     def get_marker(self, marker_id: str) -> LocationMarker:
@@ -123,5 +117,4 @@ class DataService:
             return marker
 
         except Exception as e:
-            logger.error(f"Error retrieving marker with markerId {marker_id}: {e}")
             raise Exception("Failed to retrieve marker from DynamoDB") from e
