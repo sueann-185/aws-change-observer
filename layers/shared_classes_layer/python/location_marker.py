@@ -65,6 +65,12 @@ class LocationMarker:
     def get_detected_objects(self) -> List[DetectedObjects]:
         return self._detected_objects
 
+    def get_date_created(self) -> datetime:
+        return self._date_created
+    
+    def set_date_created(self,date_created:datetime):
+        self._date_created = date_created
+
     # JSON Serialization
     def to_json(self) -> Dict[str, any]:
         """

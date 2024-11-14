@@ -1,10 +1,7 @@
 import boto3
-import logging
 from typing import List
 from location_marker import LocationMarker
 import uuid
-
-logger = logging.getLogger(__name__)
 
 class DataService:
     """A service class for interacting with the DynamoDB LocationMarkers table."""
@@ -34,7 +31,7 @@ class DataService:
         except Exception as e:
             raise Exception("Failed to retrieve markers from DynamoDB") from e
 
-    def add_marker(self, marker: LocationMarker) -> LocationMarker:
+    def add_marker(self, marker: LocationMarker) -> str:
         """
         Adds a new marker to the DynamoDB table.
 
@@ -47,7 +44,7 @@ class DataService:
            
             self.table.put_item(Item=marker.to_json())
 
-            return marker
+            return unique_id
         except Exception as e:
             raise Exception("Failed to add marker to DynamoDB") from e        
 
@@ -64,8 +61,60 @@ class DataService:
                     'markerId': str(markerId)  #dynamoDB schema requires string here
                 }
             )
-            logger.info(f"Marker with markerId {markerId} deleted.")
             return response
         except Exception as e:
-            logger.error(f"Error deleting marker with markerId {markerId}: {e}")
             return None
+        
+    def update_marker(self, marker: LocationMarker):
+        """
+        Update an existing marker in DynamoDB
+        :param marker: A LocationMarker with updated information. Replaces marker with identical ID
+        :return: The updated LocationMarker.
+        :raises Exception: Raises an exception if there is an issue updating the marker.
+        """
+        try:
+            marker_id = marker.get_marker_id()
+            if not marker_id:
+                raise ValueError("Marker must have an ID")
+
+            #get original marker data
+            original_marker_data = self.table.get_item(
+                Key={'markerId': str(marker_id)}
+            ).get('Item')
+
+            if not original_marker_data:
+                raise ValueError(f"Marker with ID {marker_id} does not exist")
+
+            #remove old entry
+            self.delete_marker(marker_id)
+
+            #replace with updated entry
+            self.table.put_item(Item=marker.to_json())
+        
+        except Exception as e:
+            raise Exception("Failed to update marker in DynamoDB") from e
+        
+    def get_marker(self, marker_id: str) -> LocationMarker:
+        """
+        Retrieve a specific marker from DynamoDB by marker_id.
+        
+        :param marker_id: Unique identifier for the marker.
+        :return: The corresponding LocationMarker instance, or raises an exception if not found.
+        :raises Exception: Raises an exception if there is an issue retrieving the marker.
+        """
+        try:
+            #get the marker data from
+            marker_data = self.table.get_item(
+                Key={'markerId': str(marker_id)}
+            ).get('Item')
+
+            #check if marker exists
+            if not marker_data:
+                raise ValueError(f"Marker with ID {marker_id} does not exist")
+
+            #return marker object
+            marker = LocationMarker.from_json(marker_data)
+            return marker
+
+        except Exception as e:
+            raise Exception("Failed to retrieve marker from DynamoDB") from e
