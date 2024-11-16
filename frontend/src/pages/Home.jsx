@@ -1,6 +1,5 @@
 import { Button } from "@/components/ui/button";
 import React from "react";
-import { useQuery } from "react-query";
 import { useGetAllMarkers } from "@/apiQueries/queries";
 
 const Home = () => {
