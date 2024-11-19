@@ -1,4 +1,3 @@
-import React from "react";
 import { Link, Outlet } from "react-router-dom";
 import { useState } from "react";
 import PulsatingButton from "@/components/ui/pulsating-button";

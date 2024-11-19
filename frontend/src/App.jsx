@@ -1,7 +1,7 @@
 import { Route, Routes } from "react-router-dom";
 import Home from "./pages/Home";
 import MarkerInfo from "./pages/MarkerInfo";
-import Layout from "./layouts/layout";
+import Layout from "./layouts/Layout";
 
 function App() {
   return (
