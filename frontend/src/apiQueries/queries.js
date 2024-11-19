@@ -6,7 +6,7 @@ const API_URL = "https://api.change-observer.com";
 
 export const useAddMarker = () => {
   const addMarkerRequest = async (markerData) => {
-    const response = await axios.post(`${API_URL}/markers`, markerData);
+    const response = await axios.post(`${API_URL}/marker`, markerData);
     return response.data;
   };
 
@@ -30,7 +30,7 @@ export const useAddMarker = () => {
 
 export const useDeleteMarker = () => {
   const deleteMarkerRequest = async (markerId) => {
-    const response = await axios.delete(`${API_URL}/markers/${markerId}`);
+    const response = await axios.delete(`${API_URL}/marker/${markerId}`);
     return response.data;
   };
 
@@ -54,7 +54,7 @@ export const useDeleteMarker = () => {
 
 export const useGetMarker = (markerId) => {
   const getMarkerRequest = async () => {
-    const response = await axios.get(`${API_URL}/markers/${markerId}`);
+    const response = await axios.get(`${API_URL}/marker?markerId=${markerId}`);
     return response.data;
   };
 
@@ -65,9 +65,7 @@ export const useGetMarker = (markerId) => {
     isSuccess,
   } = useQuery(["marker", markerId], getMarkerRequest, {
     enabled: !!markerId,
-    onSuccess: () => {
-      toast.success("Marker fetched successfully");
-    },
+    onSuccess: () => {},
     onError: (error) => {
       toast.error(error.response?.data?.message || "Error fetching marker");
       console.log(error);
@@ -80,6 +78,8 @@ export const useGetMarker = (markerId) => {
 export const useGetAllMarkers = () => {
   const getAllMarkersRequest = async () => {
     const response = await axios.get(`${API_URL}/markers`);
+    console.log("Full response:", response);
+    console.log("Response data:", response.data);
     return response.data;
   };
 
@@ -89,9 +89,7 @@ export const useGetAllMarkers = () => {
     isError,
     isSuccess,
   } = useQuery(["markers"], getAllMarkersRequest, {
-    onSuccess: () => {
-      toast.success("Markers fetched successfully");
-    },
+    onSuccess: () => {},
     onError: (error) => {
       toast.error(error.response?.data?.message || "Error fetching markers");
       console.log(error);

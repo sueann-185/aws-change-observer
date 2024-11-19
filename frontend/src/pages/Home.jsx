@@ -1,19 +1,37 @@
-import { Button } from "@/components/ui/button";
 import React from "react";
 import { useGetAllMarkers } from "@/apiQueries/queries";
+import { Card, CardHeader } from "@/components/ui/card";
+import { Link } from "react-router-dom";
 
 const Home = () => {
-  //custom hook to mutate marker query
   const { markers, isLoading, isError, isSuccess } = useGetAllMarkers();
-  console.log(markers);
+
+  console.log("Markers data:", markers);
+
+  if (isLoading) {
+    return <div className="container mx-auto w-full">Loading markers...</div>;
+  }
+
+  if (isError) {
+    return (
+      <div className="container mx-auto w-full">Error loading markers</div>
+    );
+  }
 
   return (
-    <div className="flex flex-col min-h-screen justify-center items-center">
-      <div className="container">
-        <h1 className="text-3xl font-bold">Change Observer</h1>
-        <div className="flex gap-2 items-center">
-          <Button>Click me</Button>
-        </div>
+    <div className="container mx-auto w-full flex flex-col gap-4 items-center">
+      <div className="flex gap-2 items-center">
+        {markers.map((marker) => {
+          return (
+            <Link to={`/marker/${marker.markerId}`}>
+              <Card key={marker.markerId}>
+                <CardHeader>
+                  {marker.markerId} • {marker.status}
+                </CardHeader>
+              </Card>
+            </Link>
+          );
+        })}
       </div>
     </div>
   );
