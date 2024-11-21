@@ -3,7 +3,6 @@ import os
 import logging
 import boto3
 from data_service import DataService
-from location_marker import LocationMarker
 
 # Configure logging
 logger = logging.getLogger()
@@ -14,9 +13,9 @@ dynamodb_resource = boto3.resource('dynamodb')
 
 def lambda_handler(event, context):
     """
-    AWS Lambda handler function to add a new location marker.
+    AWS Lambda handler function to delete a location marker.
 
-    :param event: AWS Lambda event object, expected to contain the marker data in the body.
+    :param event: AWS Lambda event object.
     :param context: AWS Lambda context object.
     :return: HTTP response with status code and body.
     """
@@ -33,48 +32,12 @@ def lambda_handler(event, context):
             'body': json.dumps({'error': 'Server configuration error.'})
         }
 
-    try:
-        body = json.loads(event.get('body', '{}'))
-        marker = LocationMarker.from_json(body)
-    except (json.JSONDecodeError, KeyError) as e:
-        logger.error(f"Invalid or missing body in the request: {e}")
-        return {
-            'statusCode': 400,
-            'headers': {
-                'Access-Control-Allow-Origin': '*',  # Allow all origins for testing
-                'Access-Control-Allow-Methods': 'GET,OPTIONS',  # Allowed methods
-                'Access-Control-Allow-Headers': 'Content-Type',  # Allowed headers
-            },
-            'body': json.dumps({'error': 'Invalid request body.'})
-        }
-    except Exception as e:
-        logger.error(f"Error creating LocationMarker from JSON: {e}")
-        return {
-            'statusCode': 400,
-            'headers': {
-                'Access-Control-Allow-Origin': '*',  # Allow all origins for testing
-                'Access-Control-Allow-Methods': 'GET,OPTIONS',  # Allowed methods
-                'Access-Control-Allow-Headers': 'Content-Type',  # Allowed headers
-            },
-            'body': json.dumps({'error': 'Invalid marker data format.'})
-        }
-
     data_service = DataService(table_name=table_name, dynamodb_resource=dynamodb_resource)
-
+    
     try:
-        marker_id = data_service.add_marker(marker)
-        logger.info(f"Successfully added marker with ID: {marker_id}")
-        return {
-            'statusCode': 201,
-            'headers': {
-                'Access-Control-Allow-Origin': '*',  # Allow all origins for testing
-                'Access-Control-Allow-Methods': 'GET,OPTIONS',  # Allowed methods
-                'Access-Control-Allow-Headers': 'Content-Type',  # Allowed headers
-            },
-            'body': json.dumps({'message': 'Marker added successfully', 'markerId': marker_id})
-        }
-    except Exception as e:
-        logger.error(f"Failed to add marker to DynamoDB: {e}")
+        marker_id = event["queryStringParameters"]["markerId"]
+    except:
+        logger.error(f"markerId is missing: {e}")
         return {
             'statusCode': 500,
             'headers': {
@@ -82,5 +45,29 @@ def lambda_handler(event, context):
                 'Access-Control-Allow-Methods': 'GET,OPTIONS',  # Allowed methods
                 'Access-Control-Allow-Headers': 'Content-Type',  # Allowed headers
             },
-            'body': json.dumps({'error': 'Failed to add marker to DynamoDB.'})
+            'body': json.dumps({'error': 'Failed to retrieve markerId.'})
+        }
+
+    try:
+        marker = data_service.delete_marker(marker_id)
+        logger.info(f"Successfully deleted marker.")
+        return {
+            'statusCode': 201,
+            'headers': {
+                'Access-Control-Allow-Origin': '*',  # Allow all origins for testing
+                'Access-Control-Allow-Methods': 'GET,OPTIONS',  # Allowed methods
+                'Access-Control-Allow-Headers': 'Content-Type',  # Allowed headers
+            },
+            'body': json.dumps({'message': 'Marker deleted successfully'})
+        }
+    except Exception as e:
+        logger.error(f"Error deleting marker: {e}")
+        return {
+            'statusCode': 500,
+            'headers': {
+                'Access-Control-Allow-Origin': '*',  # Allow all origins for testing
+                'Access-Control-Allow-Methods': 'GET,OPTIONS',  # Allowed methods
+                'Access-Control-Allow-Headers': 'Content-Type',  # Allowed headers
+            },
+            'body': json.dumps({'error': 'Failed to delete marker.'})
         }

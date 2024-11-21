@@ -14,7 +14,7 @@ dynamodb_resource = boto3.resource('dynamodb')
 
 def lambda_handler(event, context):
     """
-    AWS Lambda handler function to add a new location marker.
+    AWS Lambda handler function to update new location marker.
 
     :param event: AWS Lambda event object, expected to contain the marker data in the body.
     :param context: AWS Lambda context object.
@@ -62,8 +62,8 @@ def lambda_handler(event, context):
     data_service = DataService(table_name=table_name, dynamodb_resource=dynamodb_resource)
 
     try:
-        marker_id = data_service.add_marker(marker)
-        logger.info(f"Successfully added marker with ID: {marker_id}")
+        data_service.update_marker(marker)
+        logger.info(f"Successfully updated marker.")
         return {
             'statusCode': 201,
             'headers': {
@@ -71,10 +71,10 @@ def lambda_handler(event, context):
                 'Access-Control-Allow-Methods': 'GET,OPTIONS',  # Allowed methods
                 'Access-Control-Allow-Headers': 'Content-Type',  # Allowed headers
             },
-            'body': json.dumps({'message': 'Marker added successfully', 'markerId': marker_id})
+            'body': json.dumps({'message': 'Marker updated successfully'})
         }
     except Exception as e:
-        logger.error(f"Failed to add marker to DynamoDB: {e}")
+        logger.error(f"Failed to update marker and upload to DynamoDB: {e}")
         return {
             'statusCode': 500,
             'headers': {
@@ -82,5 +82,5 @@ def lambda_handler(event, context):
                 'Access-Control-Allow-Methods': 'GET,OPTIONS',  # Allowed methods
                 'Access-Control-Allow-Headers': 'Content-Type',  # Allowed headers
             },
-            'body': json.dumps({'error': 'Failed to add marker to DynamoDB.'})
+            'body': json.dumps({'error': 'Failed to update marker and upload to DynamoDB.'})
         }

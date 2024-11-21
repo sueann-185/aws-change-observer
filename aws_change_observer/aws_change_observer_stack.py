@@ -24,6 +24,8 @@ class AwsChangeObserverStack(Stack):
         GET_MARKERS_REQUEST_LAMBDA_CODE_PATH = 'lambdas/get_markers_request'
         GET_MARKER_REQUEST_LAMBDA_CODE_PATH = 'lambdas/get_marker_request'
         ADD_MARKER_REQUEST_LAMBDA_CODE_PATH = 'lambdas/add_marker_request'
+        DELETE_MARKER_REQUEST_LAMBDA_CODE_PATH = 'lambdas/delete_marker_request'
+        UPDATE_MARKER_REQUEST_LAMBDA_CODE_PATH = 'lambdas/update_marker_request'
 
         # Create the DynamoDB table
         table = dynamodb.Table(
@@ -44,27 +46,9 @@ class AwsChangeObserverStack(Stack):
             description="A layer containing the shared classes module"
         )
 
-        # Role for Get Markers Lambda
-        get_markers_role = iam.Role(
-            self, 'GetMarkersRole',
-            assumed_by=iam.ServicePrincipal('lambda.amazonaws.com'),
-            managed_policies=[
-                iam.ManagedPolicy.from_aws_managed_policy_name('service-role/AWSLambdaBasicExecutionRole')
-            ]
-        )
-
-        # Role for Add Marker Lambda
-        add_marker_role = iam.Role(
-            self, 'AddMarkerRole',
-            assumed_by=iam.ServicePrincipal('lambda.amazonaws.com'),
-            managed_policies=[
-                iam.ManagedPolicy.from_aws_managed_policy_name('service-role/AWSLambdaBasicExecutionRole')
-            ]
-        )
-
-        # Role for Get Marker Lambda
-        get_marker_role = iam.Role(
-            self, 'GetMarkerRole',
+        # Role for all lambdas
+        lambda_role = iam.Role(
+            self, 'LambdaRole',
             assumed_by=iam.ServicePrincipal('lambda.amazonaws.com'),
             managed_policies=[
                 iam.ManagedPolicy.from_aws_managed_policy_name('service-role/AWSLambdaBasicExecutionRole')
@@ -79,7 +63,7 @@ class AwsChangeObserverStack(Stack):
             handler="add_marker_request_lambda_function.lambda_handler",
             code=aws_lambda.Code.from_asset(ADD_MARKER_REQUEST_LAMBDA_CODE_PATH),
             layers=[shared_classes_layer],
-            role=add_marker_role,
+            role=lambda_role,
             environment={
                 'TABLE_NAME': table.table_name,
             },
@@ -93,7 +77,7 @@ class AwsChangeObserverStack(Stack):
             handler="get_markers_request_lambda_function.lambda_handler",
             code=aws_lambda.Code.from_asset(GET_MARKERS_REQUEST_LAMBDA_CODE_PATH),
             layers=[shared_classes_layer],
-            role=get_markers_role,
+            role=lambda_role,
             environment={
                 'TABLE_NAME': table.table_name,
             },
@@ -107,16 +91,47 @@ class AwsChangeObserverStack(Stack):
             handler="get_marker_request_lambda_function.lambda_handler",
             code=aws_lambda.Code.from_asset(GET_MARKER_REQUEST_LAMBDA_CODE_PATH),
             layers=[shared_classes_layer],
-            role=get_marker_role,
+            role=lambda_role,
             environment={
                 'TABLE_NAME': table.table_name,
+            },
+        )
+
+        # Lambda function for updating a marker
+        update_marker_request_lambda = aws_lambda.Function(
+            self, 'UpdateMarkerRequestFunction',
+            function_name='updateMarkerRequest',
+            runtime=aws_lambda.Runtime.PYTHON_3_8,
+            handler="update_marker_request_lambda_function.lambda_handler",
+            code=aws_lambda.Code.from_asset(UPDATE_MARKER_REQUEST_LAMBDA_CODE_PATH),
+            layers=[shared_classes_layer],
+            role=lambda_role,
+            environment={
+                'TABLE_NAME': table.table_name
+            },
+        )
+
+        # Lambda function for deleting a marker
+        delete_marker_request_lambda = aws_lambda.Function(
+            self, 'DeleteMarkerRequestFunction',
+            function_name='deleteMarkerRequest',
+            runtime=aws_lambda.Runtime.PYTHON_3_8,
+            handler="delete_marker_request_lambda_function.lambda_handler",
+            code=aws_lambda.Code.from_asset(DELETE_MARKER_REQUEST_LAMBDA_CODE_PATH),
+            layers=[shared_classes_layer],
+            role=lambda_role,
+            environment={
+                'TABLE_NAME': table.table_name
             },
         )
 
         # Grant access to the DynamoDB table
         table.grant_read_data(get_markers_request_lambda)
         table.grant_read_data(get_marker_request_lambda)
+        table.grant_read_data(update_marker_request_lambda)
         table.grant_write_data(add_marker_request_lambda)
+        table.grant_write_data(update_marker_request_lambda)
+        table.grant_write_data(delete_marker_request_lambda)
 
         # API Gateway
         api = apigateway.RestApi(
@@ -138,7 +153,7 @@ class AwsChangeObserverStack(Stack):
 
         # Add a specific resource
         marker_resource = api.root.add_resource("marker")
-        
+                
         # Add GET method for getting a marker by markerId
         get_marker_integration = apigateway.LambdaIntegration(get_marker_request_lambda)
         marker_resource.add_method("GET", get_marker_integration)
@@ -147,9 +162,17 @@ class AwsChangeObserverStack(Stack):
         add_marker_integration = apigateway.LambdaIntegration(add_marker_request_lambda)
         marker_resource.add_method("POST", add_marker_integration)
 
+        # Add PUT method for updating a marker
+        update_marker_integration = apigateway.LambdaIntegration(update_marker_request_lambda)
+        marker_resource.add_method("PUT", update_marker_integration)
+
+        # Add DELETE method for deleting a marker
+        delete_marker_integration = apigateway.LambdaIntegration(delete_marker_request_lambda)
+        marker_resource.add_method("DELETE", delete_marker_integration)
+        
         marker_resource.add_cors_preflight(
-             allow_origins=apigateway.Cors.ALL_ORIGINS,
-             allow_methods=["GET", "POST", "OPTIONS"],
+            allow_origins=apigateway.Cors.ALL_ORIGINS,
+            allow_methods=["GET", "POST", "PUT", "DELETE", "OPTIONS"],
         )
 
         if is_prod:
